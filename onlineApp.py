@@ -6,16 +6,12 @@ from os import path
 import csv
 import json
 
-items = ["Nails", "Screws", "Hammer", "Electric Drill"]
-sale = []
-order = []
-
 # combobox number list
 numbers = list(range(6))
-# place holder until inventory json/csv added
-holder = 0
+# global number for order placeing
+num = 0
 
-
+# 
 def close():
     win.destroy()
 
@@ -23,14 +19,11 @@ def close():
 def clear_inputs():
     empID.set("")
     password.set("")
-    sale_quantity_nails.set("0")
-    sale_quantity_screws.set("0")
-    sale_quantity_hammer.set("0")
-    sale_quantity_electric_drill.set("0")
-    order_quantity_nails.set("0")
-    order_quantity_screws.set("0")
-    order_quantity_hammer.set("0")
-    order_quantity_electric_drill.set("0")
+    quantity_nails.set("0")
+    quantity_screws.set("0")
+    quantity_hammer.set("0")
+    quantity_electric_drill.set("0")
+    ID.set("")
 
 
 def verify():
@@ -44,13 +37,24 @@ def verify():
     if empID in employee:
         if password != employee[empID]["Password"]:
             clear_inputs()
-            messagebox.showwarning("Error", "Check Employee ID or Password")
+            messagebox.showwarning(title= "Credential Error", message= "Check Employee ID or Password")
         else:
             pass_frame.grid_forget()
             option_frame.grid(row=2, column=0, padx=10, pady=10)
     else:
         clear_inputs()
-        messagebox.showwarning("Error", "Check Employee ID or Password")
+        messagebox.showwarning(title= "Credential Error", message= "Check Employee ID or Password")
+
+
+def log_transaction(transaction_num, q_nails, q_screws, q_hammer, q_electric_drill, total):
+    if not path.isfile("transactions.csv"):
+        with open("transactions.csv", "w", newline='') as fp:
+            data = csv.writer(fp)
+            data.writerow(["Transaction Number", "Time", "Nails", "Screws", "Hammers", "Electric Drills", "Total"])
+    
+    with open("transactions.csv", "a", newline='') as fp:
+        data = csv.writer(fp)
+        data.writerow([transaction_num, time.ctime(), q_nails, q_screws, q_hammer, q_electric_drill, f'${total:0.2f}'])
 
 
 def sales():
@@ -58,9 +62,97 @@ def sales():
     sales_frame.grid(row=2, column=0, padx=10, pady=10)
 
 
-def sale_submit():
-    clear_inputs()
+def update():
+    file_handle = open("inventory.json")
+    inventory = json.load(file_handle)
+    file_handle.close()
 
+    #sales
+    sale_inventory_nails_label = Label(box3, text=f"{inventory['Nails']['quantity']}")
+    sale_inventory_nails_label.grid(column=2, row=1, padx=5, pady=5)
+
+    sale_inventory_screws_label = Label(box3, text=f"{inventory['Screws']['quantity']}")
+    sale_inventory_screws_label.grid(column=2, row=2, padx=5, pady=5)
+
+    sale_inventory_hammer_label = Label(box3, text=f"{inventory['Hammer']['quantity']}")
+    sale_inventory_hammer_label.grid(column=2, row=3, padx=5, pady=5)
+
+    sale_inventory_elecric_drill_label = Label(box3, text=f"{inventory['Electric Drill']['quantity']}")
+    sale_inventory_elecric_drill_label.grid(column=2, row=4, padx=5, pady=5)
+
+    #orders
+    order_inventory_nails_label = Label(box4, text=f"{inventory['Nails']['quantity']}")
+    order_inventory_nails_label.grid(column=2, row=1, padx=5, pady=5)
+
+    order_inventory_screws_label = Label(box4, text=f"{inventory['Screws']['quantity']}")
+    order_inventory_screws_label.grid(column=2, row=2, padx=5, pady=5)
+
+    order_inventory_hammer_label = Label(box4, text=f"{inventory['Hammer']['quantity']}")
+    order_inventory_hammer_label.grid(column=2, row=3, padx=5, pady=5)
+
+    order_inventory_elecric_drill_label = Label(box4, text=f"{inventory['Electric Drill']['quantity']}")
+    order_inventory_elecric_drill_label.grid(column=2, row=4, padx=5, pady=5)
+
+    win.after(1000, update)
+
+
+def sale_submit():
+    file_handle = open("inventory.json")
+    inventory = json.load(file_handle)
+    file_handle.close()
+    
+    q_nails = quantity_nails.get()
+    q_screws = quantity_screws.get()
+    q_hammer = quantity_hammer.get()
+    q_electric_drill = quantity_electric_drill.get()
+
+    if q_nails > inventory["Nails"]["quantity"]:
+        messagebox.showwarning(title= "Inventory Error", message= "Not enough Nails to sell")
+        clear_inputs()
+    elif q_screws > inventory["Screws"]["quantity"]:
+        messagebox.showwarning(title= "Inventory Error", message= "Not enough Screws to sell")
+        clear_inputs()
+    elif q_hammer > inventory["Hammer"]["quantity"]:
+        messagebox.showwarning(title= "Inventory Error", message= "Not enough Hammers to sell")
+        clear_inputs()
+    elif q_electric_drill > inventory["Electric Drill"]["quantity"]:
+        messagebox.showwarning(title= "Inventory Error", message= "Not enough Electric Drills to sell")
+        clear_inputs()
+    else:
+        sale_nails = inventory["Nails"]["sale price"] * q_nails
+        sale_screws = inventory["Screws"]["sale price"] * q_screws
+        sale_hammer = inventory["Hammer"]["sale price"] * q_hammer
+        sale_electric_drill = inventory["Electric Drill"]["sale price"] * q_electric_drill
+
+        sale_pre_total = (sale_nails + sale_screws + sale_hammer + sale_electric_drill)
+
+        sales_tax = sale_pre_total * 0.086
+
+        total = sale_pre_total + sales_tax
+        
+        global num
+        num += 1
+        num_fill = str(num).zfill(4)
+        transaction_num = f'S{num_fill}'
+
+        log_transaction(transaction_num, q_nails, q_screws, q_hammer, q_electric_drill, total)
+
+        inventory["Nails"]["quantity"] = inventory["Nails"]["quantity"] - q_nails
+        inventory["Screws"]["quantity"] = inventory["Screws"]["quantity"] - q_screws
+        inventory["Hammer"]["quantity"] = inventory["Hammer"]["quantity"] - q_hammer
+        inventory["Electric Drill"]["quantity"] = inventory["Electric Drill"]["quantity"] - q_electric_drill
+        
+            
+        messagebox.showinfo(title="Sales Total", 
+                            message= f"Total: ${sale_pre_total:0.2f}\nTax: ${sales_tax:0.2f}\nSales Total: ${total:0.2f}")
+
+        with open('inventory.json', 'w') as file_handle:
+            json.dump(inventory, file_handle)
+        
+        clear_inputs()
+
+        update()
+        
 
 def orders():
     option_frame.grid_forget()
@@ -68,14 +160,97 @@ def orders():
 
 
 def order_submit():
+    file_handle = open("inventory.json")
+    inventory = json.load(file_handle)
+    file_handle.close()
+
+    q_nails = quantity_nails.get()
+    q_screws = quantity_screws.get()
+    q_hammer = quantity_hammer.get()
+    q_electric_drill = quantity_electric_drill.get()
+
+    order_nails = inventory["Nails"]["order price"] * q_nails
+    order_screws = inventory["Screws"]["order price"] * q_screws
+    order_hammer = inventory["Hammer"]["order price"] * q_hammer
+    order_electric_drill = inventory["Electric Drill"]["order price"] * q_electric_drill
+
+    order_pre_total = (order_nails + order_screws + order_hammer + order_electric_drill)
+
+    order_tax = order_pre_total * 0.086
+
+    order_shipping = order_pre_total * 1.086
+
+    total = order_pre_total + order_tax + order_shipping
+
+    global num
+    num += 1
+    num_fill = str(num).zfill(4)
+    transaction_num = f'O{num_fill}'    
+
+    log_transaction(transaction_num, q_nails, q_screws, q_hammer, q_electric_drill, total)
+
+    inventory["Nails"]["quantity"] = inventory["Nails"]["quantity"] + q_nails
+    inventory["Screws"]["quantity"] = inventory["Screws"]["quantity"] + q_screws
+    inventory["Hammer"]["quantity"] = inventory["Hammer"]["quantity"] + q_hammer
+    inventory["Electric Drill"]["quantity"] = inventory["Electric Drill"]["quantity"] + q_electric_drill
+
+    messagebox.showinfo(title="Order Total",
+                        message= f"Total: ${order_pre_total:0.2f}\nTax: ${order_tax:0.2f}\nShipping: ${order_shipping:0.2f}\nOrder Total: ${total:0.2f}")
+    
+    with open('inventory.json', 'w') as file_handle:
+        json.dump(inventory, file_handle)
+
     clear_inputs()
+
+    update()
+
 
 def cancel():
     option_frame.grid_forget()
     cancel_frame.grid(row=2, column=0, padx=10, pady=10)
 
-def cancel_ID():
+
+def update_inventory():
+    file_handle = open("inventory.json")
+    inventory = json.load(file_handle)
+    file_handle.close()
+
+
+    with open('transactions.csv', 'r', newline='') as fp:
+        for row in csv.reader(fp):
+            if row[0] == ID.get():
+                if "O" in ID.get():
+                    inventory["Nails"]["quantity"] = inventory["Nails"]["quantity"] - int(row[2])
+                    inventory["Screws"]["quantity"] = inventory["Screws"]["quantity"] - int(row[3])
+                    inventory["Hammer"]["quantity"] = inventory["Hammer"]["quantity"] - int(row[4])
+                    inventory["Electric Drill"]["quantity"] = inventory["Electric Drill"]["quantity"] - int(row[5])
+                elif "S" in ID.get():
+                    inventory["Nails"]["quantity"] = inventory["Nails"]["quantity"] + int(row[2])
+                    inventory["Screws"]["quantity"] = inventory["Screws"]["quantity"] + int(row[3])
+                    inventory["Hammer"]["quantity"] = inventory["Hammer"]["quantity"] + int(row[4])
+                    inventory["Electric Drill"]["quantity"] = inventory["Electric Drill"]["quantity"] + int(row[5])
+    
+    with open('inventory.json', 'w') as file_handle:
+        json.dump(inventory, file_handle)
+
+
+def cancel_transaction():
+    with open('transactions.csv', 'r', newline='') as inp, open('transactions_updated.csv', 'w', newline='') as out:
+        writer = csv.writer(out)
+        for row in csv.reader(inp):
+            if row[0] != ID.get():
+                writer.writerow(row)
+
+    update_inventory()
+  
+    messagebox.showinfo(title="Cancel Order", message=f"Transaction {ID.get()} has been canceled")
     clear_inputs()
+
+    cancel_frame.grid_forget()
+    option_frame.grid(row=2, column=0, padx=10, pady=10)
+
+    update()
+
 
 def back_to_option_from_cancel():
     cancel_frame.grid_forget()
@@ -116,7 +291,7 @@ logo_label.grid(column=0, row=0, pady=10)
 exit_button = Button(main_frame, command=close, text="Exit")
 exit_button.grid(column=0, row=3, padx=10, pady=10)
 
-# pass_fram for empID/password input
+# pass_frame for empID/password input
 pass_frame = Frame(main_frame, width=680, height=680)
 pass_frame.grid(row=2, column=0, padx=10, pady=10)
 
@@ -194,20 +369,20 @@ box3.columnconfigure(2, weight=1)
 amount_sale_label = Label(box3, text="Amount to sale:")
 amount_sale_label.grid(column=0, row=0, padx=5)
 
-sale_quantity_nails = IntVar()
-amount_sale_combobox_nails = ttk.Combobox(box3, textvariable=sale_quantity_nails, values=numbers, state="readonly")
+quantity_nails = IntVar()
+amount_sale_combobox_nails = ttk.Combobox(box3, textvariable=quantity_nails, values=numbers, state="readonly")
 amount_sale_combobox_nails.grid(column=0, row=1, padx=5, pady=5)
 
-sale_quantity_screws = IntVar()
-amount_sale_combobox_screws = ttk.Combobox(box3, textvariable=sale_quantity_screws, values=numbers, state="readonly")
+quantity_screws = IntVar()
+amount_sale_combobox_screws = ttk.Combobox(box3, textvariable=quantity_screws, values=numbers, state="readonly")
 amount_sale_combobox_screws.grid(column=0, row=2, padx=5, pady=5)
 
-sale_quantity_hammer = IntVar()
-amount_sale_combobox_hammer = ttk.Combobox(box3, textvariable=sale_quantity_hammer, values=numbers, state="readonly")
+quantity_hammer = IntVar()
+amount_sale_combobox_hammer = ttk.Combobox(box3, textvariable=quantity_hammer, values=numbers, state="readonly")
 amount_sale_combobox_hammer.grid(column=0, row=3, padx=5, pady=5)
 
-sale_quantity_electric_drill = IntVar()
-amount_sale_combobox_electric_drill = ttk.Combobox(box3, textvariable=sale_quantity_electric_drill, values=numbers, state="readonly")
+quantity_electric_drill = IntVar()
+amount_sale_combobox_electric_drill = ttk.Combobox(box3, textvariable=quantity_electric_drill, values=numbers, state="readonly")
 amount_sale_combobox_electric_drill.grid(column=0, row=4, padx=5, pady=5)
 
 # sales item for each item
@@ -230,16 +405,20 @@ sale_item_elecric_drill_label.grid(column=1, row=4, padx=5, pady=5)
 sale_inventory_amount_label = Label(box3, text="Amount in Inventory:")
 sale_inventory_amount_label.grid(column=2, row=0, padx=5)
 
-sale_inventory_nails_label = Label(box3, text=f"{holder}")
+file_handle = open("inventory.json")
+inventory = json.load(file_handle)
+file_handle.close()
+
+sale_inventory_nails_label = Label(box3, text=f"{inventory['Nails']['quantity']}")
 sale_inventory_nails_label.grid(column=2, row=1, padx=5, pady=5)
 
-sale_inventory_screws_label = Label(box3, text=f"{holder}")
+sale_inventory_screws_label = Label(box3, text=f"{inventory['Screws']['quantity']}")
 sale_inventory_screws_label.grid(column=2, row=2, padx=5, pady=5)
 
-sale_inventory_hammer_label = Label(box3, text=f"{holder}")
+sale_inventory_hammer_label = Label(box3, text=f"{inventory['Hammer']['quantity']}")
 sale_inventory_hammer_label.grid(column=2, row=3, padx=5, pady=5)
 
-sale_inventory_elecric_drill_label = Label(box3, text=f"{holder}")
+sale_inventory_elecric_drill_label = Label(box3, text=f"{inventory['Electric Drill']['quantity']}")
 sale_inventory_elecric_drill_label.grid(column=2, row=4, padx=5, pady=5)
 
 # submit sale button for total
@@ -271,20 +450,20 @@ box4.columnconfigure(2, weight=1)
 amount_order_label = Label(box4, text="Amount to Order:")
 amount_order_label.grid(column=0, row=0, padx=5)
 
-order_quantity_nails = IntVar()
-amount_order_combobox_nails = ttk.Combobox(box4, textvariable=order_quantity_nails, values=numbers, state="readonly")
+
+amount_order_combobox_nails = ttk.Combobox(box4, textvariable=quantity_nails, values=numbers, state="readonly")
 amount_order_combobox_nails.grid(column=0, row=1, padx=5, pady=5)
 
-order_quantity_screws = IntVar()
-amount_order_combobox_screws = ttk.Combobox(box4, textvariable=order_quantity_screws, values=numbers, state="readonly")
+
+amount_order_combobox_screws = ttk.Combobox(box4, textvariable=quantity_screws, values=numbers, state="readonly")
 amount_order_combobox_screws.grid(column=0, row=2, padx=5, pady=5)
 
-order_quantity_hammer = IntVar()
-amount_order_combobox_hammer = ttk.Combobox(box4, textvariable=order_quantity_hammer, values=numbers, state="readonly")
+
+amount_order_combobox_hammer = ttk.Combobox(box4, textvariable=quantity_hammer, values=numbers, state="readonly")
 amount_order_combobox_hammer.grid(column=0, row=3, padx=5, pady=5)
 
-order_quantity_electric_drill = IntVar()
-amount_order_combobox_electric_drill = ttk.Combobox(box4, textvariable=order_quantity_electric_drill, values=numbers, state="readonly")
+
+amount_order_combobox_electric_drill = ttk.Combobox(box4, textvariable=quantity_electric_drill, values=numbers, state="readonly")
 amount_order_combobox_electric_drill.grid(column=0, row=4, padx=5, pady=5)
 
 # order item for each item
@@ -307,16 +486,16 @@ order_item_elecric_drill_label.grid(column=1, row=4, padx=5, pady=5)
 order_inventory_amount_label = Label(box4, text="Amount in Inventory:")
 order_inventory_amount_label.grid(column=2, row=0, padx=5)
 
-order_inventory_nails_label = Label(box4, text=f"{holder}")
+order_inventory_nails_label = Label(box4, text=f"{inventory['Nails']['quantity']}")
 order_inventory_nails_label.grid(column=2, row=1, padx=5, pady=5)
 
-order_inventory_screws_label = Label(box4, text=f"{holder}")
+order_inventory_screws_label = Label(box4, text=f"{inventory['Screws']['quantity']}")
 order_inventory_screws_label.grid(column=2, row=2, padx=5, pady=5)
 
-order_inventory_hammer_label = Label(box4, text=f"{holder}")
+order_inventory_hammer_label = Label(box4, text=f"{inventory['Hammer']['quantity']}")
 order_inventory_hammer_label.grid(column=2, row=3, padx=5, pady=5)
 
-order_inventory_elecric_drill_label = Label(box4, text=f"{holder}")
+order_inventory_elecric_drill_label = Label(box4, text=f"{inventory['Electric Drill']['quantity']}")
 order_inventory_elecric_drill_label.grid(column=2, row=4, padx=5, pady=5)
 
 # oder submit button
@@ -340,7 +519,6 @@ box5.rowconfigure(2, weight=1)
 box5.columnconfigure(0, weight=1)
 box5.columnconfigure(1, weight=1)
 
-
 cancel_label = Label(box5, text="Enter Order/Sale ID:")
 cancel_label.grid(column=0, row=0, sticky=W, padx=5, pady=5)
 
@@ -348,7 +526,7 @@ ID = StringVar()
 cancel_entry = Entry(box5, textvariable=ID)
 cancel_entry.grid(column=1, row=0, padx=5, pady=5)
 
-cancel_button = Button(box5, command=cancel_ID, text="Cancel")
+cancel_button = Button(box5, command=cancel_transaction, text="Cancel Order")
 cancel_button.grid(column=1, row=1, padx=5, pady=5)
 
 # back button
