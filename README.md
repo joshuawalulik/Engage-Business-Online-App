@@ -1,0 +1,3 @@
+# onlineApp
+
+This is a python application utilizing tkinter as its GUI. It's main function is as a fictional Point of Sale application for the company Engage Business. It has Username and Password validation. It also has a sale funtion that allows users (employees) the ability to tally up and total a transaction, in which it then updates the inventory accordingly. In relation to that, it also has an order function to allow userss (Employees) the ability to restock its inventory, which also updates accordingly. The final function it has would be to cancel a transaction, in which it removes it from the logs as well as updating the inventory to accomodate for the transaction that has been canceled.
