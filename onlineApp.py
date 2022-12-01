@@ -77,8 +77,8 @@ def update():
     sale_inventory_hammer_label = Label(box3, text=f"{inventory['Hammer']['quantity']}")
     sale_inventory_hammer_label.grid(column=2, row=3, padx=5, pady=5)
 
-    sale_inventory_elecric_drill_label = Label(box3, text=f"{inventory['Electric Drill']['quantity']}")
-    sale_inventory_elecric_drill_label.grid(column=2, row=4, padx=5, pady=5)
+    sale_inventory_electric_drill_label = Label(box3, text=f"{inventory['Electric Drill']['quantity']}")
+    sale_inventory_electric_drill_label.grid(column=2, row=4, padx=5, pady=5)
 
     #orders
     order_inventory_nails_label = Label(box4, text=f"{inventory['Nails']['quantity']}")
@@ -90,8 +90,8 @@ def update():
     order_inventory_hammer_label = Label(box4, text=f"{inventory['Hammer']['quantity']}")
     order_inventory_hammer_label.grid(column=2, row=3, padx=5, pady=5)
 
-    order_inventory_elecric_drill_label = Label(box4, text=f"{inventory['Electric Drill']['quantity']}")
-    order_inventory_elecric_drill_label.grid(column=2, row=4, padx=5, pady=5)
+    order_inventory_electric_drill_label = Label(box4, text=f"{inventory['Electric Drill']['quantity']}")
+    order_inventory_electric_drill_label.grid(column=2, row=4, padx=5, pady=5)
 
     win.after(1000, update)
 
@@ -398,8 +398,8 @@ sale_item_screws_label.grid(column=1, row=2, padx=5, pady=5)
 sale_item_hammer_label = Label(box3, text="Hammer")
 sale_item_hammer_label.grid(column=1, row=3, padx=5, pady=5)
 
-sale_item_elecric_drill_label = Label(box3, text="Electric Drill")
-sale_item_elecric_drill_label.grid(column=1, row=4, padx=5, pady=5)
+sale_item_electric_drill_label = Label(box3, text="Electric Drill")
+sale_item_electric_drill_label.grid(column=1, row=4, padx=5, pady=5)
 
 # sales inventory for each amount will link to csv/json for updated numbers
 sale_inventory_amount_label = Label(box3, text="Amount in Inventory:")
@@ -418,8 +418,8 @@ sale_inventory_screws_label.grid(column=2, row=2, padx=5, pady=5)
 sale_inventory_hammer_label = Label(box3, text=f"{inventory['Hammer']['quantity']}")
 sale_inventory_hammer_label.grid(column=2, row=3, padx=5, pady=5)
 
-sale_inventory_elecric_drill_label = Label(box3, text=f"{inventory['Electric Drill']['quantity']}")
-sale_inventory_elecric_drill_label.grid(column=2, row=4, padx=5, pady=5)
+sale_inventory_electric_drill_label = Label(box3, text=f"{inventory['Electric Drill']['quantity']}")
+sale_inventory_electric_drill_label.grid(column=2, row=4, padx=5, pady=5)
 
 # submit sale button for total
 sale_submit_button = Button(box3, command=sale_submit, text="Submit")
@@ -479,8 +479,8 @@ order_item_screws_label.grid(column=1, row=2, padx=5, pady=5)
 order_item_hammer_label = Label(box4, text="Hammer")
 order_item_hammer_label.grid(column=1, row=3, padx=5, pady=5)
 
-order_item_elecric_drill_label = Label(box4, text="Electric Drill")
-order_item_elecric_drill_label.grid(column=1, row=4, padx=5, pady=5)
+order_item_electric_drill_label = Label(box4, text="Electric Drill")
+order_item_electric_drill_label.grid(column=1, row=4, padx=5, pady=5)
 
 # order inventory for each amount will link to csv/json for updated numbers
 order_inventory_amount_label = Label(box4, text="Amount in Inventory:")
@@ -495,8 +495,8 @@ order_inventory_screws_label.grid(column=2, row=2, padx=5, pady=5)
 order_inventory_hammer_label = Label(box4, text=f"{inventory['Hammer']['quantity']}")
 order_inventory_hammer_label.grid(column=2, row=3, padx=5, pady=5)
 
-order_inventory_elecric_drill_label = Label(box4, text=f"{inventory['Electric Drill']['quantity']}")
-order_inventory_elecric_drill_label.grid(column=2, row=4, padx=5, pady=5)
+order_inventory_electric_drill_label = Label(box4, text=f"{inventory['Electric Drill']['quantity']}")
+order_inventory_electric_drill_label.grid(column=2, row=4, padx=5, pady=5)
 
 # oder submit button
 order_submit_button = Button(box4, command=order_submit, text="Submit")
